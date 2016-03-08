@@ -17,15 +17,15 @@
 package com.support.android.designlibdemo;
 
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -33,42 +33,67 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Toast;
+import android.widget.ImageView;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.bumptech.glide.Glide;
 
 /**
  * TODO
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        CheeseListFragment.OnCheeseListFragmentInteractionListener,
+        CheeseDetailFragment.OnCheeseDetailFragmentListener,
+        CheeseCategoriesFragment.OnCheeseCategoriesFragmentListener {
 
     private DrawerLayout mDrawerLayout;
+    private ImageView imageView;
+    private TabLayout tabLayout;
+    private CollapsingToolbarLayout collapsingToolbar;
+    private AppBarLayout appBar;
+    private Toolbar toolbar;
+
+    public CollapsingToolbarLayout getCollapsingToolbar() {
+        return collapsingToolbar;
+    }
+
+    public TabLayout getTabLayout() {
+        return tabLayout;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        syncFrags();
+    }
+
+    private void syncFrags() {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        if (fragment instanceof CheeseCategoriesFragment) {
+            disableCollapse();
+        } else if (fragment instanceof CheeseDetailFragment) {
+            enableCollapse();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        appBar = (AppBarLayout) findViewById(R.id.appbar);
+        imageView = (ImageView) findViewById(R.id.backdrop);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         final ActionBar ab = getSupportActionBar();
         ab.setHomeAsUpIndicator(R.drawable.ic_menu);
         ab.setDisplayHomeAsUpEnabled(true);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         if (navigationView != null) {
             setupDrawerContent(navigationView);
-        }
-
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        if (viewPager != null) {
-            setupViewPager(viewPager);
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -80,8 +105,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        loadBackdrop();
+        launchCheeseCategoriesFragment();
     }
 
     @Override
@@ -100,52 +126,54 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setupViewPager(ViewPager viewPager) {
-        Adapter adapter = new Adapter(getSupportFragmentManager());
-        adapter.addFragment(new CheeseListFragment(), "Category 1");
-        adapter.addFragment(new CheeseListFragment(), "Category 2");
-        adapter.addFragment(new CheeseListFragment(), "Category 3");
-        viewPager.setAdapter(adapter);
-    }
-
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
-                menuItem.setChecked(true);
-                mDrawerLayout.closeDrawers();
-                return true;
-            }
-        });
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setChecked(true);
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
     }
 
-    static class Adapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragments = new ArrayList<>();
-        private final List<String> mFragmentTitles = new ArrayList<>();
+    private void loadBackdrop() {
+        final ImageView imageView = (ImageView) findViewById(R.id.backdrop);
+        Glide.with(this).load(Cheeses.getRandomCheeseDrawable()).centerCrop().into(imageView);
+    }
 
-        public Adapter(FragmentManager fm) {
-            super(fm);
-        }
+    private void launchCheeseCategoriesFragment() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fragment_container, CheeseCategoriesFragment.newInstance());
+        ft.addToBackStack(null);
+        ft.commit();
+    }
 
-        public void addFragment(Fragment fragment, String title) {
-            mFragments.add(fragment);
-            mFragmentTitles.add(title);
-        }
+    private void launchCheeseDetailFragment(String string) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fragment_container, CheeseDetailFragment.newInstance(string));
+        ft.addToBackStack(null);
+        ft.commit();
+    }
 
-        @Override
-        public Fragment getItem(int position) {
-            return mFragments.get(position);
-        }
+    @Override
+    public void disableCollapse() {
+        imageView.setVisibility(View.GONE);
+        tabLayout.setVisibility(View.VISIBLE);
+        collapsingToolbar.setTitleEnabled(false);
 
-        @Override
-        public int getCount() {
-            return mFragments.size();
-        }
+    }
 
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mFragmentTitles.get(position);
-        }
+    @Override
+    public void enableCollapse() {
+        imageView.setVisibility(View.VISIBLE);
+        tabLayout.setVisibility(View.GONE);
+        collapsingToolbar.setTitleEnabled(true);
+    }
+
+    @Override
+    public void onCheeseClick(String string) {
+        launchCheeseDetailFragment(string);
     }
 }

@@ -1,10 +1,11 @@
-![alt text](https://raw.githubusercontent.com/chrisbanes/cheesesquare/master/art/icon.png)
+![alt text](https://raw.githubusercontent.com/OliWheeler/CheeseSquareFragment/master/art/cheesesquare_fragments.gif)
 
 Cheesesquare Sample WITH FRAGMENTS
 ===================================
 This is a modified version of chrisbanes Cheesesquare demo but using fragments instead
 
-![alt text](https://raw.githubusercontent.com/OliWheeler/CheeseSquareFragment/master/art/cheesesquare_fragments.gif)
+![alt text](https://raw.githubusercontent.com/chrisbanes/cheesesquare/master/art/icon.png)
+
 License
 -------
 

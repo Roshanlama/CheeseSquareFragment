@@ -4,6 +4,8 @@ Cheesesquare Sample WITH FRAGMENTS
 ===================================
 This is a modified version of chrisbanes Cheesesquare demo but using fragments instead
 
+![alt text](https://drive.google.com/file/d/0BxhVu8x7vWdtWGNlWHhYeGVvMFk/view?usp=sharing)
+
 License
 -------
 
